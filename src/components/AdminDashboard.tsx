@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  X, Package, ShoppingBag, BarChart2, Users, Upload,
-  Edit2, Save, Loader2, TrendingUp, DollarSign, LogOut,
-  Plus, Trash2, Eye, EyeOff
-} from 'lucide-react';
+import { X, Package, ShoppingBag, BarChart2, Users, Upload, CreditCard as Edit2, Save, Loader2, TrendingUp, DollarSign, LogOut, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Product, Order } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -52,6 +48,7 @@ export default function AdminDashboard({ isOpen, onClose }: AdminDashboardProps)
   const [newProduct, setNewProduct] = useState<ProductForm>(BLANK_FORM);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -146,7 +143,10 @@ export default function AdminDashboard({ isOpen, onClose }: AdminDashboardProps)
       .from('product-images')
       .upload(fileName, file, { upsert: true });
 
-    if (!upErr) {
+    if (upErr) {
+      setUploadError('Error al subir la imagen: ' + upErr.message);
+    } else {
+      setUploadError(null);
       const { data: urlData } = supabase.storage
         .from('product-images')
         .getPublicUrl(fileName);
@@ -211,6 +211,12 @@ export default function AdminDashboard({ isOpen, onClose }: AdminDashboardProps)
               </div>
             ) : (
               <div>
+                {uploadError && (
+                  <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 font-body text-xs flex items-center justify-between">
+                    {uploadError}
+                    <button onClick={() => setUploadError(null)} className="ml-4 text-red-400 hover:text-red-600"><X size={14} /></button>
+                  </div>
+                )}
                 {/* Add Product Button */}
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-serif text-lg text-onyx-800">{products.length} productos</span>
